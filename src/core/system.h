@@ -71,6 +71,8 @@
 typedef struct
 {
   uint8 *data;      /* Bitmap data */
+  uint8 *data1;      /* Bitmap data */
+  uint8 *data2;      /* Bitmap data */
   int width;        /* Bitmap width */
   int height;       /* Bitmap height */
   int pitch;        /* Bitmap pitch */

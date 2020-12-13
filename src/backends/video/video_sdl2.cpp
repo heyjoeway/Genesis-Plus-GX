@@ -21,10 +21,13 @@
 SDL_Window* sdl_window;
 SDL_Renderer* sdl_renderer;
 SDL_Surface* sdl_winsurf;
-SDL_Surface* sdl_bitmap;
-SDL_Texture* sdl_texture;
+SDL_Surface* sdl_bitmap_1;
+SDL_Surface* sdl_bitmap_2;
+SDL_Texture* sdl_texture_1;
+SDL_Texture* sdl_texture_2;
 SDL_Rect rect_source;
-SDL_Rect rect_dest;
+SDL_Rect rect_dest_1;
+SDL_Rect rect_dest_2;
 Uint16 screen_width;
 Uint16 screen_height;
 int fullscreen;
@@ -41,10 +44,10 @@ int SDL_OnResize(void* data, SDL_Event* event) {
 }
 
 void Init_Bitmap() {
-  if (sdl_texture != NULL) SDL_DestroyTexture(sdl_texture);
-  if (sdl_bitmap != NULL) SDL_FreeSurface(sdl_bitmap);
+  if (sdl_texture_1 != NULL) SDL_DestroyTexture(sdl_texture_1);
+  if (sdl_bitmap_1 != NULL) SDL_FreeSurface(sdl_bitmap_1);
 
-  sdl_bitmap = SDL_CreateRGBSurfaceWithFormat(
+  sdl_bitmap_1 = SDL_CreateRGBSurfaceWithFormat(
     0,
     VIDEO_WIDTH,
     (VIDEO_HEIGHT * 2) + 1, // idk but it stops a segfault in 2p
@@ -52,12 +55,32 @@ void Init_Bitmap() {
     SURFACE_FORMAT
   );
 
-  sdl_texture = SDL_CreateTextureFromSurface(sdl_renderer, sdl_bitmap);
-  SDL_SetTextureBlendMode(sdl_texture, SDL_BLENDMODE_BLEND);
+  sdl_texture_1 = SDL_CreateTextureFromSurface(sdl_renderer, sdl_bitmap_1);
+  SDL_SetTextureBlendMode(sdl_texture_1, SDL_BLENDMODE_BLEND);
 
-  SDL_LockSurface(sdl_bitmap);
-  bitmap.data = (unsigned char *)sdl_bitmap->pixels;
-  SDL_UnlockSurface(sdl_bitmap);
+  SDL_LockSurface(sdl_bitmap_1);
+  bitmap.data1 = (unsigned char *)sdl_bitmap_1->pixels;
+  SDL_UnlockSurface(sdl_bitmap_1);
+
+  // ==========================================================================
+
+  if (sdl_texture_2 != NULL) SDL_DestroyTexture(sdl_texture_2);
+  if (sdl_bitmap_2 != NULL) SDL_FreeSurface(sdl_bitmap_2);
+
+  sdl_bitmap_2 = SDL_CreateRGBSurfaceWithFormat(
+    0,
+    VIDEO_WIDTH,
+    (VIDEO_HEIGHT * 2) + 1, // idk but it stops a segfault in 2p
+    SDL_BITSPERPIXEL(SURFACE_FORMAT),
+    SURFACE_FORMAT
+  );
+
+  sdl_texture_2 = SDL_CreateTextureFromSurface(sdl_renderer, sdl_bitmap_2);
+  SDL_SetTextureBlendMode(sdl_texture_2, SDL_BLENDMODE_BLEND);
+
+  SDL_LockSurface(sdl_bitmap_2);
+  bitmap.data2 = (unsigned char *)sdl_bitmap_2->pixels;
+  SDL_UnlockSurface(sdl_bitmap_2);
 }
 
 int Backend_Video_Init() {
@@ -100,7 +123,7 @@ int Backend_Video_Init() {
   SDL_ShowCursor(0);
   SDL_AddEventWatch(SDL_OnResize, sdl_window);
 
-  SDL_QueryTexture(sdl_texture, &tex_fmt_id, NULL, NULL, NULL);
+  SDL_QueryTexture(sdl_texture_1, &tex_fmt_id, NULL, NULL, NULL);
   dst_fmt = SDL_AllocFormat(tex_fmt_id);
 
   return 1;
@@ -137,82 +160,136 @@ void Update_Viewport() {
   if (interlaced) rect_source.h += bitmap.viewport.h;
   rect_source.x = 0;
   rect_source.y = 0;
-  rect_dest.h = screen_height;
+  rect_dest_1.h = screen_height;
 
   if (option_scaling == 2) { // Stretch
-    rect_dest.w = screen_width;
-    rect_dest.x = 0;
-    rect_dest.y = 0;
+    rect_dest_1.w = screen_width;
+    rect_dest_1.x = 0;
+    rect_dest_1.y = 0;
   } else {
     int video_height = bitmap.viewport.h;
     if (interlaced) video_height *= 2;
 
     float aspect_ratio = bitmap.viewport.w / (float)video_height;
-    rect_dest.w = aspect_ratio * rect_dest.h;
+    if (machine_maxindex > 0) aspect_ratio /= 2.0;
+    rect_dest_1.w = aspect_ratio * rect_dest_1.h;
 
-    if (rect_dest.w > screen_width) {
-      rect_dest.w = screen_width;
-      rect_dest.h = rect_dest.w / aspect_ratio;
+    if (rect_dest_1.w > screen_width) {
+      rect_dest_1.w = screen_width;
+      rect_dest_1.h = (rect_dest_1.w / aspect_ratio);
     }
 
     if (option_scaling == 1) { // Integer scaling
-      rect_dest.h = (rect_dest.h / video_height) * (float)video_height;
-      rect_dest.w = aspect_ratio * rect_dest.h;
+      rect_dest_1.h = (rect_dest_1.h / video_height) * (float)video_height;
+      rect_dest_1.w = aspect_ratio * rect_dest_1.h;
     }
 
-    rect_dest.x = (screen_width / 2.0) - (rect_dest.w / 2.0);
-    rect_dest.y = (screen_height / 2.0) - (rect_dest.h / 2.0);
+    rect_dest_1.x = (screen_width / 2.0) - (rect_dest_1.w / 2.0);
+    rect_dest_1.y = (screen_height / 2.0) - (rect_dest_1.h / 2.0);
   }
   #ifdef SWITCH // ??????? idk
-    rect_dest.w *= 0.9343065693430657;
-    rect_dest.h *= 0.9343065693430657;
-    rect_dest.x *= 0.9343065693430657;
-    rect_dest.y *= 0.9343065693430657;
+    rect_dest_1.w *= 0.9343065693430657;
+    rect_dest_1.h *= 0.9343065693430657;
+    rect_dest_1.x *= 0.9343065693430657;
+    rect_dest_1.y *= 0.9343065693430657;
   #endif
+
+  if (machine_maxindex > 0) {
+    rect_dest_1.h /= 2.0;
+
+    rect_dest_2.w = rect_dest_1.w;
+    rect_dest_2.h = rect_dest_1.h;
+    rect_dest_2.x = rect_dest_1.x;
+    rect_dest_2.y = rect_dest_1.y + rect_dest_1.h;
+  }
 
   /* clear destination surface */
   SDL_FillRect(sdl_winsurf, 0, 0);
 }
 
 void Update_Texture() {
-  /* Set up a destination surface for the texture update */
-  SDL_LockSurface(sdl_bitmap);
-  SDL_Surface *temp = SDL_ConvertSurface(sdl_bitmap, dst_fmt, 0);
-  SDL_UnlockSurface(sdl_bitmap);
+  {
+    /* Set up a destination surface for the texture update */
+    SDL_LockSurface(sdl_bitmap_1);
+    SDL_Surface *temp = SDL_ConvertSurface(sdl_bitmap_1, dst_fmt, 0);
+    SDL_UnlockSurface(sdl_bitmap_1);
 
-  Uint32 key_color = SDL_MapRGB(
-    temp->format,
-    0xFF, 0x00, 0xFF
-  );
+    Uint32 key_color = SDL_MapRGB(
+      temp->format,
+      0xFF, 0x00, 0xFF
+    );
 
-  // "Green screen" the image
-  for (int i = 0; i < temp->w * temp->h; i++) {
-    if (((Uint32*)temp->pixels)[i] != key_color) continue;
-    ((Uint32*)temp->pixels)[i] &= 0x00FFFFFF; 
+    // "Green screen" the image
+    for (int i = 0; i < temp->w * temp->h; i++) {
+      if (((Uint32*)temp->pixels)[i] != key_color) continue;
+      ((Uint32*)temp->pixels)[i] &= 0x00FFFFFF; 
+    }
+
+    SDL_UpdateTexture(sdl_texture_1, NULL, temp->pixels, temp->pitch);
+    SDL_FreeSurface(temp);
   }
 
-  SDL_UpdateTexture(sdl_texture, NULL, temp->pixels, temp->pitch);
-  SDL_FreeSurface(temp);
+  // ==========================================================================
+
+  if (machine_maxindex > 0) {
+    /* Set up a destination surface for the texture update */
+    SDL_LockSurface(sdl_bitmap_2);
+    SDL_Surface *temp = SDL_ConvertSurface(sdl_bitmap_2, dst_fmt, 0);
+    SDL_UnlockSurface(sdl_bitmap_2);
+
+    Uint32 key_color = SDL_MapRGB(
+      temp->format,
+      0xFF, 0x00, 0xFF
+    );
+
+    // "Green screen" the image
+    for (int i = 0; i < temp->w * temp->h; i++) {
+      if (((Uint32*)temp->pixels)[i] != key_color) continue;
+      ((Uint32*)temp->pixels)[i] &= 0x00FFFFFF; 
+    }
+
+    SDL_UpdateTexture(sdl_texture_2, NULL, temp->pixels, temp->pitch);
+    SDL_FreeSurface(temp);
+  }
 }
 
 void Update_Renderer() {
   if (option_mirrormode) {
     SDL_RenderCopyEx(
       sdl_renderer,
-      sdl_texture,
+      sdl_texture_1,
       &rect_source,
-      &rect_dest,
+      &rect_dest_1,
       0,
       NULL,
       SDL_FLIP_HORIZONTAL
     );
+    if (machine_maxindex > 0) {
+      SDL_RenderCopyEx(
+        sdl_renderer,
+        sdl_texture_2,
+        &rect_source,
+        &rect_dest_2,
+        0,
+        NULL,
+        SDL_FLIP_HORIZONTAL
+      );
+    }
   } else {
     SDL_RenderCopy(
       sdl_renderer,
-      sdl_texture,
+      sdl_texture_1,
       &rect_source,
-      &rect_dest
+      &rect_dest_1
     );
+    if (machine_maxindex > 0) {
+      SDL_RenderCopy(
+        sdl_renderer,
+        sdl_texture_2,
+        &rect_source,
+        &rect_dest_2
+      );
+    }
   }
 }
 
@@ -231,8 +308,10 @@ int Backend_Video_Present() {
 
 int Backend_Video_Close() {
   SDL_FreeFormat(dst_fmt);
-  SDL_DestroyTexture(sdl_texture);
-  SDL_FreeSurface(sdl_bitmap);
+  SDL_DestroyTexture(sdl_texture_1);
+  SDL_DestroyTexture(sdl_texture_2);
+  SDL_FreeSurface(sdl_bitmap_1);
+  SDL_FreeSurface(sdl_bitmap_2);
   SDL_DestroyWindow(sdl_window);
   SDL_Quit();
 

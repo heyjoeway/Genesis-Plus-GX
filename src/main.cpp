@@ -123,26 +123,59 @@ static void update_overclock(void)
 #endif
 
 int running = 1;
+uint8 machine_id = 0;
+uint8 machine_maxindex = 0;
+uint8 machine_maxindex_prev = 0;
+unsigned char machine1_state[4194304];
+unsigned char machine2_state[4194304];
 
 void mainloop() {
   Backend_Input_MainLoop();
-  gamehacks_update();
+  // gamehacks_update();
+
+  int sound_update_size;
 
   #ifdef HAVE_OVERCLOCK
     /* update overclock delay */
     if (overclock_delay && --overclock_delay == 0)
         update_overclock();
   #endif
+
+  if (machine_maxindex_prev != machine_maxindex) {
+    if (machine_maxindex > 0) memcpy(machine2_state, machine1_state, 4194304);
+    machine_maxindex_prev = machine_maxindex;
+  }
+
+  {
+    machine_id = 0;
+    bitmap.data = bitmap.data1;
+    state_load(machine1_state);
+
+    if (system_hw == SYSTEM_MCD) system_frame_scd(0);
+    else if ((system_hw & SYSTEM_PBC) == SYSTEM_MD) system_frame_gen(0);
+    else system_frame_sms(0);
+  
+    sound_update_size = audio_update(soundframe) * 2;
+    state_save(machine1_state);
+  }
+
+  if (machine_maxindex > 0) {
+    machine_id = 1;
+    bitmap.data = bitmap.data2;
+    state_load(machine2_state);
+
+    if (system_hw == SYSTEM_MCD) system_frame_scd(0);
+    else if ((system_hw & SYSTEM_PBC) == SYSTEM_MD) system_frame_gen(0);
+    else system_frame_sms(0);
+  
+    sound_update_size = audio_update(soundframe) * 2;
+    state_save(machine2_state);
+  }
+
   Backend_Video_Clear();
-  gamehacks_render();
-
-  if (system_hw == SYSTEM_MCD) system_frame_scd(0);
-  else if ((system_hw & SYSTEM_PBC) == SYSTEM_MD) system_frame_gen(0);
-  else system_frame_sms(0);
-
+  // gamehacks_render();
   Backend_Video_Update();
   Backend_Video_Present();
-  int sound_update_size = audio_update(soundframe) * 2;
   if (use_sound) Backend_Sound_Update(sound_update_size);
 }
 
@@ -391,8 +424,13 @@ int main (int argc, char *argv[]) {
     }
   }
 
+  bitmap.data = bitmap.data1;
+
   /* reset system hardware */
   system_reset();
+
+  state_save(machine1_state);
+  state_save(machine2_state);
 
   //if (use_sound) Backend_Sound_Pause();
 

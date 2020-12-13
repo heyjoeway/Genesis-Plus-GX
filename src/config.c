@@ -88,14 +88,13 @@ void config_legacy_set_defaults(void)
 	/* controllers options */
 	input.system[0]       = SYSTEM_GAMEPAD;
 	input.system[1]       = SYSTEM_GAMEPAD;
+	input.dev[0] = DEVICE_PAD6B;
+	input.dev[1] = DEVICE_PAD6B;
+	config_legacy.input[0].padtype = DEVICE_PAD6B;
+	config_legacy.input[1].padtype = DEVICE_PAD6B;
 	config_legacy.gun_cursor[0]  = 1;
 	config_legacy.gun_cursor[1]  = 1;
 	config_legacy.invert_mouse   = 0;
-	for (int i=0;i<MAX_INPUTS;i++)
-	{
-		/* autodetected control pad type */
-		config_legacy.input[i].padtype = DEVICE_PAD6B;
-	}
 }
 
 const char *config_default = "{ \

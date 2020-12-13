@@ -443,6 +443,11 @@ unsigned int ctrl_io_read_byte(unsigned int address)
       return m68k_read_bus_8(address);
     }
 
+    case 0x60: // Custom VDP command to support identifying multiple simultaneous consoles
+    {
+      return machine_id;
+    }
+
     case 0x10:  /* MEMORY MODE */
     case 0x12:  /* Z80 RESET */
     case 0x13:  /* unknown */
@@ -866,6 +871,12 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
     case 0x50:  /* SVP */
     {
       m68k_unused_8_w(address, data);
+      return;
+    }
+
+    case 0x60: // Custom VDP command to support running multiple simultaneous consoles
+    {
+      machine_maxindex = data;
       return;
     }
 

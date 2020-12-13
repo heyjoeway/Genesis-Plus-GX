@@ -246,7 +246,7 @@ unsigned char gamepad_1_read(void)
 
 unsigned char gamepad_2_read(void)
 {
-  return gamepad_read(4);
+  return gamepad_read(1);
 }
 
 void gamepad_1_write(unsigned char data, unsigned char mask)
@@ -256,7 +256,7 @@ void gamepad_1_write(unsigned char data, unsigned char mask)
 
 void gamepad_2_write(unsigned char data, unsigned char mask)
 {
-  gamepad_write(4, data, mask);
+  gamepad_write(1, data, mask);
 }
 
 /*--------------------------------------------------------------------------*/

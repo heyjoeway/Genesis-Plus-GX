@@ -39,6 +39,8 @@
 
 extern int running;
 extern void *window_shared;
+extern uint8 machine_id;
+extern uint8 machine_maxindex;
 
 #endif /* _SHARED_H_ */
 
