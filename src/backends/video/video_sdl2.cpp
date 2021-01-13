@@ -119,8 +119,11 @@ int Backend_Video_Init() {
 bool needs_clear = false;
 
 int Backend_Video_Clear() {
+  // Hack to prevent seizure-inducing strobe on Switch
+  #ifndef SWITCH
   if (!needs_clear) return 0;
   needs_clear = false;
+  #endif
   SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 255);
   SDL_RenderClear(sdl_renderer);
   return 1;
