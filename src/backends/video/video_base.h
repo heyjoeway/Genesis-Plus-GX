@@ -25,6 +25,7 @@ void *Backend_Video_LoadImage(char *path);
 void *Backend_Video_GetRenderer();
 int Backend_Video_SetVsync(int vsync);
 int Backend_Video_GetRefreshRate();
+int Backend_Video_GetActive();
 
 #ifdef __cplusplus
 }

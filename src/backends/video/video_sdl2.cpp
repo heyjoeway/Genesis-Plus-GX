@@ -312,3 +312,7 @@ int Backend_Video_GetRefreshRate() {
 
   return mode.refresh_rate;
 }
+
+int Backend_Video_GetActive() {
+  return !(SDL_GetWindowFlags(sdl_window) & SDL_WINDOW_MINIMIZED);
+}
