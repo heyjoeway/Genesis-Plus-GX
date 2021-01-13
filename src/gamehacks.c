@@ -18,8 +18,8 @@
 
 #define mQueue 0xEEC2
 #define mFlags 0xEEB0+1
-#define Current_Zone 0xFB90-1
-#define Current_Act 0xFB91-1
+#define Apparent_Zone 0xFBD0-1
+#define Apparent_Act 0xFBD1-1
 #define Game_Mode 0xF370+1
 #define SSTrack_anim 0xDCAA+1
 #define SS_Cur_Speed_Factor 0xDCB8-1
@@ -94,7 +94,7 @@ int gamehacks_play_music(char id) {
         path,
         "./gamehacks/music/%x_%i.ogg",
         id,
-        work_ram[Current_Act] + 1
+        work_ram[Apparent_Act] + 1
     );
     // Return music stop command
     if (Backend_Sound_PlayMusic(path)) return ID_CMD_STOP;

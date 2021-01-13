@@ -28,7 +28,7 @@
 
 .DEFAULT_GOAL := all
 
-NAME	  = gen
+NAME	  = s2cx
 SUFFIX	  = 
 PKGCONFIG = pkg-config
 DEBUG	 ?= 0
