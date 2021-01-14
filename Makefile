@@ -119,7 +119,7 @@ DEFINES += \
 CFLAGS += `$(PKGCONFIG) --cflags zlib vorbisfile jansson`
 LIBS   += `$(PKGCONFIG) --libs-only-l --libs-only-L zlib vorbisfile jansson`
 
-CFLAGS += -Wno-strict-aliasing -Wno-narrowing -Wno-write-strings
+CFLAGS += -Wno-strict-aliasing -Wno-narrowing -Wno-write-strings -msse -fpermissive
 
 ifeq ($(STATIC),1)
 	CFLAGS += -static
