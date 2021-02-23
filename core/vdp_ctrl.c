@@ -1991,6 +1991,9 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
           window_clip(reg[17], 1);
 
           /* Update max sprite pixels per line*/
+          
+          // I don't think this updates when the widescreen setting is toggled so I'm
+          // just gonna set the max all the time for now
           // max_sprite_pixels = 320;
           // if (config.widescreen_h40)
             max_sprite_pixels = 400;
